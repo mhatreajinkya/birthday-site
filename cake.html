@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cake Celebration 🎂</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+    <style>
+        body.cake-page {
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            min-height: 100vh; overflow: hidden;
+            background: radial-gradient(circle at 50% 40%, #2a0050 0%, #0d0015 100%);
+            transition: background 1.4s ease;
+        }
+        body.cake-page.light-on {
+            background: radial-gradient(circle at 50% 30%, #fff5f9 0%, #ffecd2 60%, #ffd6e7 100%) !important;
+        }
+
+        /* ── BANNER ── */
+        #birthday-banner {
+            position: fixed; top: -130px; left: 0; width: 100%;
+            background: linear-gradient(90deg, #ff4baf, #ff3366, #ff4baf);
+            background-size: 200% auto;
+            animation: bannerShine 3s linear infinite;
+            color: white; padding: 20px;
+            text-align: center;
+            font-family: 'Dancing Script', cursive; font-size: 2.6rem;
+            z-index: 100;
+            transition: top 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 6px 40px rgba(255,75,175,0.6);
+            letter-spacing: 2px;
+        }
+        #birthday-banner.banner-visible { top: 0; }
+        @keyframes bannerShine { to { background-position: 200% center; } }
+
+        /* ── CAKE STAGE ── */
+        .ritual-container {
+            position: relative; z-index: 10;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 35px; padding: 20px; width: 100%;
+            margin-top: 20px;
+        }
+
+        #cake-svg-wrap {
+            width: 340px; height: 340px;
+            display: flex; align-items: flex-end; justify-content: center;
+            position: relative;
+            filter: drop-shadow(0 20px 40px rgba(255,75,175,0.35));
+            transition: transform 1s ease, filter 1s ease;
+        }
+
+        /* Each cake layer hidden initially */
+        #cake-svg-wrap .cake-part { opacity: 0; transition: opacity 0.6s ease, transform 0.7s cubic-bezier(0.34,1.56,0.64,1); transform: scaleY(0.2); transform-origin: bottom; }
+        #cake-svg-wrap .cake-part.show { opacity: 1; transform: scaleY(1); }
+
+        /* ── CANDLE & FLAME ── */
+        .candle-wrap {
+            position: absolute;
+            bottom: 205px; left: 50%; transform: translateX(-50%);
+            display: flex; flex-direction: column; align-items: center;
+            opacity: 0; transition: opacity 0.6s ease;
+        }
+        .candle-wrap.lit { opacity: 1; }
+
+        .flame-svg { animation: flicker 0.15s ease-in-out infinite alternate; transform-origin: bottom center; }
+        @keyframes flicker {
+            from { transform: scaleX(1) scaleY(1) rotate(-3deg); }
+            to   { transform: scaleX(0.85) scaleY(1.12) rotate(3deg); }
+        }
+
+        /* ── BUTTONS ── */
+        .action-center {
+            display: flex; justify-content: center; align-items: center; min-height: 72px;
+        }
+        .step-btn { display: none; }
+
+        /* ── BALLOON ── */
+        .balloon {
+            position: fixed; bottom: -130px;
+            width: 52px; height: 64px; border-radius: 50%;
+            z-index: 5; animation: balloonUp 7s ease-in forwards;
+        }
+        .balloon::before {
+            content: ''; position: absolute;
+            bottom: -24px; left: 50%; transform: translateX(-50%);
+            width: 2px; height: 24px; background: rgba(255,255,255,0.35);
+        }
+        @keyframes balloonUp {
+            0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-115vh) rotate(18deg); opacity: 0; }
+        }
+
+        /* ── FLASH ── */
+        .flash-overlay {
+            position: fixed; inset: 0; background: white;
+            z-index: 9999; pointer-events: none;
+            animation: flashOut 1s ease-out forwards;
+        }
+        @keyframes flashOut { 0% { opacity:1; } 100% { opacity:0; } }
+
+        /* Light-on text fix */
+        body.light-on .floating-home { color: #c2185b; border-color: rgba(194,24,91,0.25); background: rgba(255,255,255,0.6); }
+    </style>
+</head>
+<body class="cake-page">
+    <canvas id="particleCanvas"></canvas>
+    <a href="menu.html" class="floating-home">🏠 Home</a>
+    <div id="birthday-banner">✨ Happy Birthday Shivani ✨</div>
+
+    <main class="ritual-container">
+
+        <!-- SVG CAKE -->
+        <div id="cake-svg-wrap">
+            <!-- Built by JS below -->
+        </div>
+
+        <div class="action-center">
+            <button id="btn-light" class="step-btn premium-btn pulse">💡 Turn On Light</button>
+            <button id="btn-music" class="step-btn premium-btn">🎵 Play Music</button>
+            <button id="btn-party" class="step-btn premium-btn">🎉 Let's Party!</button>
+        </div>
+    </main>
+
+    <audio id="bg-music" src="Music/song.mp3" loop></audio>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="script.js"></script>
+    <script>
+    (function() {
+
+        // ── BUILD SVG CAKE ──────────────────────────────────────────
+        var wrap = document.getElementById('cake-svg-wrap');
+        wrap.innerHTML = `
+        <svg width="340" height="330" viewBox="0 0 340 330" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="plateGrad" cx="50%" cy="40%" r="50%">
+              <stop offset="0%" stop-color="#fff8f9"/>
+              <stop offset="100%" stop-color="#ffd6e7"/>
+            </radialGradient>
+            <linearGradient id="layer1" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#ffdde1"/>
+              <stop offset="100%" stop-color="#ffb3c6"/>
+            </linearGradient>
+            <linearGradient id="layer2" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#e879f9"/>
+              <stop offset="100%" stop-color="#c026d3"/>
+            </linearGradient>
+            <linearGradient id="layer3" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#fda4af"/>
+              <stop offset="100%" stop-color="#fb7185"/>
+            </linearGradient>
+            <linearGradient id="layer4" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="100%" stop-color="#fce4ec"/>
+            </linearGradient>
+            <linearGradient id="dripGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#ff4baf" stop-opacity="0.9"/>
+              <stop offset="100%" stop-color="#ff4baf" stop-opacity="0"/>
+            </linearGradient>
+            <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="rgba(255,75,175,0.3)"/>
+            </filter>
+          </defs>
+
+          <!-- PLATE -->
+          <g class="cake-part" id="cp-plate">
+            <ellipse cx="170" cy="310" rx="110" ry="14" fill="url(#plateGrad)" filter="url(#softShadow)"/>
+            <ellipse cx="170" cy="306" rx="108" ry="10" fill="none" stroke="rgba(255,150,180,0.5)" stroke-width="2"/>
+          </g>
+
+          <!-- LAYER 1 — bottom (widest) -->
+          <g class="cake-part" id="cp-l1">
+            <rect x="60" y="262" width="220" height="46" rx="12" fill="url(#layer1)" filter="url(#softShadow)"/>
+            <!-- frosting top -->
+            <path d="M60,264 Q80,254 100,264 Q120,254 140,264 Q160,254 180,264 Q200,254 220,264 Q240,254 260,264 Q270,258 280,264 L280,268 Q260,258 240,268 Q220,258 200,268 Q180,258 160,268 Q140,258 120,268 Q100,258 80,268 Q60,258 60,268 Z" fill="white" opacity="0.7"/>
+            <!-- dots decoration -->
+            <circle cx="95"  cy="282" r="4" fill="white" opacity="0.6"/>
+            <circle cx="120" cy="276" r="3" fill="white" opacity="0.5"/>
+            <circle cx="145" cy="284" r="4" fill="white" opacity="0.6"/>
+            <circle cx="170" cy="278" r="3" fill="white" opacity="0.5"/>
+            <circle cx="195" cy="283" r="4" fill="white" opacity="0.6"/>
+            <circle cx="220" cy="277" r="3" fill="white" opacity="0.5"/>
+            <circle cx="245" cy="282" r="4" fill="white" opacity="0.6"/>
+          </g>
+
+          <!-- LAYER 2 -->
+          <g class="cake-part" id="cp-l2">
+            <rect x="90" y="212" width="160" height="50" rx="11" fill="url(#layer2)" filter="url(#softShadow)"/>
+            <path d="M90,214 Q106,204 122,214 Q138,204 154,214 Q170,204 186,214 Q202,204 218,214 Q232,208 250,214 L250,220 Q232,210 218,220 Q202,210 186,220 Q170,210 154,220 Q138,210 122,220 Q106,210 90,220 Z" fill="white" opacity="0.65"/>
+            <!-- hearts -->
+            <text x="130" y="244" font-size="14" opacity="0.5">❤</text>
+            <text x="165" y="250" font-size="12" opacity="0.4">❤</text>
+            <text x="195" y="242" font-size="13" opacity="0.5">❤</text>
+          </g>
+
+          <!-- DRIPS from layer2 -->
+          <g class="cake-part" id="cp-drip">
+            <ellipse cx="108" cy="262" rx="7" ry="10" fill="#ff4baf" opacity="0.6"/>
+            <ellipse cx="138" cy="265" rx="6" ry="8"  fill="#ff4baf" opacity="0.5"/>
+            <ellipse cx="170" cy="263" rx="7" ry="11" fill="#ff4baf" opacity="0.6"/>
+            <ellipse cx="202" cy="264" rx="6" ry="9"  fill="#ff4baf" opacity="0.5"/>
+            <ellipse cx="232" cy="262" rx="7" ry="10" fill="#ff4baf" opacity="0.6"/>
+          </g>
+
+          <!-- LAYER 3 -->
+          <g class="cake-part" id="cp-l3">
+            <rect x="115" y="166" width="110" height="46" rx="10" fill="url(#layer3)" filter="url(#softShadow)"/>
+            <path d="M115,168 Q128,158 141,168 Q154,158 167,168 Q180,158 193,168 Q206,158 225,168 L225,174 Q206,164 193,174 Q180,164 167,174 Q154,164 141,174 Q128,164 115,174 Z" fill="white" opacity="0.6"/>
+            <circle cx="145" cy="186" r="5" fill="white" opacity="0.5"/>
+            <circle cx="170" cy="190" r="4" fill="white" opacity="0.4"/>
+            <circle cx="195" cy="185" r="5" fill="white" opacity="0.5"/>
+          </g>
+
+          <!-- LAYER 4 — top -->
+          <g class="cake-part" id="cp-l4">
+            <rect x="138" y="128" width="64" height="38" rx="9" fill="url(#layer4)" filter="url(#softShadow)"/>
+            <path d="M138,130 Q148,122 158,130 Q165,122 170,130 Q175,122 182,130 Q192,122 202,130 L202,136 Q192,128 182,136 Q175,128 170,136 Q165,128 158,136 Q148,128 138,136 Z" fill="white" opacity="0.7"/>
+            <!-- star sprinkles -->
+            <text x="148" y="154" font-size="11" opacity="0.6">✨</text>
+            <text x="170" y="150" font-size="9"  opacity="0.5">⭐</text>
+          </g>
+
+          <!-- CANDLE (shown after cake builds) -->
+          <g id="candle-group" opacity="0" style="transition: opacity 0.7s ease">
+            <!-- candle body -->
+            <rect x="164" y="100" width="12" height="30" rx="3" fill="#fff9c4" stroke="#f0d060" stroke-width="1"/>
+            <!-- candle shine -->
+            <rect x="166" y="103" width="3" height="20" rx="2" fill="white" opacity="0.5"/>
+            <!-- flame outer -->
+            <ellipse cx="170" cy="92" rx="8" ry="12" fill="#ff9d00" opacity="0.9">
+              <animateTransform attributeName="transform" type="scale" values="1,1; 0.88,1.1; 1,1" dur="0.22s" repeatCount="indefinite" additive="sum"/>
+            </ellipse>
+            <!-- flame inner -->
+            <ellipse cx="170" cy="94" rx="4" ry="7" fill="#ffee58" opacity="0.95"/>
+            <!-- glow -->
+            <ellipse cx="170" cy="92" rx="14" ry="18" fill="#ff9d00" opacity="0.15"/>
+          </g>
+
+          <!-- STARS around cake (appear after party) -->
+          <g id="star-group" opacity="0" style="transition: opacity 1s ease">
+            <text x="30"  y="200" font-size="22" opacity="0.7">✨</text>
+            <text x="285" y="190" font-size="20" opacity="0.6">✨</text>
+            <text x="45"  y="280" font-size="16" opacity="0.5">⭐</text>
+            <text x="275" y="275" font-size="18" opacity="0.6">⭐</text>
+            <text x="60"  y="150" font-size="14" opacity="0.5">💫</text>
+            <text x="265" y="155" font-size="14" opacity="0.5">💫</text>
+          </g>
+        </svg>`;
+
+        // ── STEP CONTROLLER ─────────────────────────────────────────
+        var btnLight = document.getElementById('btn-light');
+        var btnMusic = document.getElementById('btn-music');
+        var btnParty = document.getElementById('btn-party');
+
+        function fadeIn(btn) {
+            btn.style.display = 'inline-block';
+            btn.style.opacity = '0';
+            btn.style.transition = 'none';
+            requestAnimationFrame(function() {
+                requestAnimationFrame(function() {
+                    btn.style.transition = 'opacity 0.5s ease';
+                    btn.style.opacity = '1';
+                });
+            });
+        }
+        function fadeOut(btn, cb) {
+            btn.style.transition = 'opacity 0.4s ease';
+            btn.style.opacity = '0';
+            setTimeout(function() { btn.style.display = 'none'; if(cb) cb(); }, 420);
+        }
+
+        fadeIn(btnLight);
+
+        // STEP 1 — LIGHT
+        btnLight.addEventListener('click', function() {
+            var flash = document.createElement('div');
+            flash.className = 'flash-overlay';
+            document.body.appendChild(flash);
+            setTimeout(function() { flash.remove(); }, 1050);
+            setTimeout(function() { document.body.classList.add('light-on'); }, 250);
+            fadeOut(btnLight, function() { setTimeout(function() { fadeIn(btnMusic); }, 200); });
+        });
+
+        // STEP 2 — MUSIC
+        btnMusic.addEventListener('click', function() {
+            var music = document.getElementById('bg-music');
+            if (music) music.play().catch(function(){});
+            fadeOut(btnMusic, function() { setTimeout(function() { fadeIn(btnParty); }, 200); });
+        });
+
+        // STEP 3 — PARTY
+        btnParty.addEventListener('click', function() {
+            fadeOut(btnParty, null);
+            buildCakeAnimation();
+        });
+
+        // ── CAKE BUILD ANIMATION ────────────────────────────────────
+        var parts = ['cp-plate','cp-l1','cp-l2','cp-drip','cp-l3','cp-l4'];
+        function buildCakeAnimation() {
+            parts.forEach(function(id, i) {
+                setTimeout(function() {
+                    var el = document.getElementById(id);
+                    if (el) el.classList.add('show');
+                    // Show candle after last layer
+                    if (i === parts.length - 1) {
+                        setTimeout(function() {
+                            document.getElementById('candle-group').style.opacity = '1';
+                        }, 600);
+                    }
+                }, i * 550);
+            });
+
+            // Start celebration after cake is built
+            setTimeout(startCelebration, parts.length * 550 + 900);
+        }
+
+        function startCelebration() {
+            // Banner
+            document.getElementById('birthday-banner').classList.add('banner-visible');
+
+            // Stars
+            document.getElementById('star-group').style.opacity = '1';
+
+            // Scale up cake
+            document.getElementById('cake-svg-wrap').style.transform = 'scale(1.06)';
+            document.getElementById('cake-svg-wrap').style.filter = 'drop-shadow(0 25px 50px rgba(255,75,175,0.55))';
+
+            // Confetti
+            if (typeof confetti === 'function') {
+                confetti({ particleCount: 200, spread: 90, origin: { y: 0.65 } });
+                setTimeout(function() { confetti({ particleCount: 100, angle: 60,  spread: 55, origin: { x: 0 } }); }, 500);
+                setTimeout(function() { confetti({ particleCount: 100, angle: 120, spread: 55, origin: { x: 1 } }); }, 800);
+                setTimeout(function() { confetti({ particleCount: 80,  spread: 120, origin: { y: 0.4 } }); }, 1400);
+            }
+
+            // Balloons
+            var colors = ['#ff4baf','#a855f7','#ff9d00','#ff4b5c','#38bdf8','#fb7185'];
+            for (var i = 0; i < 20; i++) {
+                (function(idx) {
+                    setTimeout(function() {
+                        var b = document.createElement('div');
+                        b.className = 'balloon';
+                        b.style.left = (Math.random() * 90 + 5) + 'vw';
+                        b.style.background = colors[Math.floor(Math.random() * colors.length)];
+                        document.body.appendChild(b);
+                        setTimeout(function() { b.remove(); }, 8000);
+                    }, idx * 220);
+                })(i);
+            }
+        }
+
+    })();
+    </script>
+</body>
+</html>

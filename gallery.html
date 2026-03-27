@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Memories ❤️</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+    <style>
+        body.gallery-body {
+            background: radial-gradient(circle at center, #1a0033 0%, #05000a 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden;
+        }
+
+        /* OVERLAY */
+        #gallery-overlay {
+            position: fixed; inset: 0;
+            background: radial-gradient(circle at center, #1a0033 0%, #05000a 100%);
+            z-index: 200;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 25px;
+            transition: opacity 0.7s ease;
+        }
+        #gallery-overlay h2 {
+            font-family: 'Dancing Script', cursive;
+            font-size: clamp(2rem, 6vw, 3.2rem);
+            color: white;
+            text-shadow: 0 0 20px rgba(255,75,175,0.6);
+            text-align: center; padding: 0 20px;
+        }
+
+        /* GALLERY CONTENT */
+        #gallery-content {
+            display: none;
+            position: relative; z-index: 10;
+            width: 90%; max-width: 580px;
+            text-align: center;
+        }
+        .gallery-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.2rem; color: white;
+            text-shadow: 0 0 15px rgba(255,75,175,0.5);
+            margin-bottom: 20px;
+        }
+
+        /* POLAROID FRAME */
+        .photo-frame {
+            background: white;
+            padding: 12px 12px 55px 12px;
+            border-radius: 4px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6), 0 0 30px rgba(255,75,175,0.2);
+            transform: rotate(-1.5deg);
+            transition: transform 0.4s ease;
+            position: relative;
+        }
+        .photo-frame:hover { transform: rotate(0deg) scale(1.01); }
+
+        #slideshow {
+            width: 100%; height: 360px;
+            background: #111; position: relative; overflow: hidden;
+            border-radius: 2px;
+        }
+        #slideshow img {
+            position: absolute; inset: 0;
+            width: 100%; height: 100%;
+            object-fit: cover; opacity: 0;
+            transition: opacity 1.4s ease, transform 7s linear;
+            transform: scale(1);
+        }
+        #slideshow img.active { opacity: 1; transform: scale(1.08); }
+
+        .photo-caption {
+            position: absolute; bottom: 14px; left: 0; width: 100%;
+            font-family: 'Dancing Script', cursive;
+            font-size: 1.6rem; color: #444; text-align: center;
+            transition: opacity 0.4s ease;
+        }
+
+        /* CONTROLS */
+        .gallery-controls {
+            display: flex; justify-content: center;
+            gap: 15px; margin-top: 18px;
+        }
+        .ctrl-btn {
+            padding: 12px 30px;
+            background: linear-gradient(45deg, #ff4b5c, #ff4baf);
+            color: white; border: none; border-radius: 50px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600; font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 8px 20px rgba(255,75,175,0.35);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .ctrl-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 25px rgba(255,75,175,0.5); }
+
+        /* PROGRESS DOTS */
+        .photo-dots {
+            display: flex; justify-content: center; gap: 8px; margin-top: 14px;
+        }
+        .dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: rgba(255,255,255,0.25);
+            transition: background 0.3s, transform 0.3s;
+            cursor: pointer;
+        }
+        .dot.active { background: #ff4baf; transform: scale(1.4); }
+    </style>
+</head>
+<body class="gallery-body">
+    <canvas id="particleCanvas"></canvas>
+    <a href="menu.html" class="floating-home">🏠 Home</a>
+
+    <!-- Overlay -->
+    <div id="gallery-overlay">
+        <h2>Ready for our journey? 💕</h2>
+        <button class="ctrl-btn" id="start-btn" style="font-size:1.1rem; padding:15px 40px;">✨ Start Memories</button>
+    </div>
+
+    <!-- Gallery -->
+    <div id="gallery-content">
+        <h2 class="gallery-title">Our Romantic Journey ✨</h2>
+        <div class="photo-frame">
+            <div id="slideshow"></div>
+            <div class="photo-caption" id="caption">Every moment with you is a gift...</div>
+        </div>
+        <div class="photo-dots" id="dots"></div>
+        <div class="gallery-controls">
+            <button class="ctrl-btn" id="prev-btn">← Prev</button>
+            <button class="ctrl-btn" id="next-btn">Next →</button>
+        </div>
+    </div>
+
+    <!-- Try both casings — browsers on Windows ignore case, but Linux/Mac servers don't -->
+    <audio id="gallery-music" src="Music/Perfect.mp3" loop></audio>
+    <script src="script.js"></script>
+    <script>
+    (function() {
+        // ── YOUR PHOTOS ─────────────────────────────────────
+        // Folder: images/   Files: pic1.jpeg … pic6.jpeg
+        // If you add more photos, just add more lines below ↓
+        var photos = [
+            { src: 'images/pic1.jpeg', caption: 'Every moment with you is a gift... 💕' },
+            { src: 'images/pic2.jpeg', caption: 'You make every day brighter ☀️' },
+            { src: 'images/pic3.jpeg', caption: 'My favourite person in the world 🌸' },
+            { src: 'images/pic4.jpeg', caption: 'Forever and always ❤️' },
+            { src: 'images/pic5.jpeg', caption: 'You are my sunshine 💛' },
+            { src: 'images/pic6.jpeg', caption: 'The best chapter of my life 📖' },
+            { src: 'images/pic7.jpeg', caption: 'Forever and always 📖' },
+            { src: 'images/pic8.jpeg', caption: 'The best chapter of my life 📖' },
+            { src: 'images/pic14.jpeg', caption: 'Every moment with you is a gift... 💕 📖' },
+            { src: 'images/pic9.jpeg', caption: 'Zakir Khan 💛' },
+            { src: 'images/pic11.jpeg', caption: 'Every moment with you is a gift... 💕 📖' },
+            { src: 'images/pic12.jpeg', caption: 'The best chapter of my life 📖' }
+        ];
+
+        var currentIdx = 0;
+        var timer = null;
+        var slideshow = document.getElementById('slideshow');
+        var captionEl = document.getElementById('caption');
+        var dotsEl = document.getElementById('dots');
+
+        // Build slides & dots
+        photos.forEach(function(p, i) {
+            var img = document.createElement('img');
+            img.src = p.src;
+            // If image fails to load — log a warning (don't replace with random placeholder)
+            img.onerror = function() {
+                console.warn('⚠️ Could not load:', p.src, '— Make sure file exists in images/ folder');
+            };
+            if (i === 0) img.classList.add('active');
+            slideshow.appendChild(img);
+
+            var dot = document.createElement('div');
+            dot.className = 'dot' + (i === 0 ? ' active' : '');
+            dot.addEventListener('click', function() { goTo(i); });
+            dotsEl.appendChild(dot);
+        });
+
+        function goTo(idx) {
+            var imgs = slideshow.querySelectorAll('img');
+            var dots = dotsEl.querySelectorAll('.dot');
+            imgs[currentIdx].classList.remove('active');
+            dots[currentIdx].classList.remove('active');
+            currentIdx = (idx + photos.length) % photos.length;
+            imgs[currentIdx].classList.add('active');
+            dots[currentIdx].classList.add('active');
+            captionEl.style.opacity = '0';
+            setTimeout(function() {
+                captionEl.textContent = photos[currentIdx].caption;
+                captionEl.style.opacity = '1';
+            }, 350);
+        }
+
+        document.getElementById('prev-btn').addEventListener('click', function() { goTo(currentIdx - 1); });
+        document.getElementById('next-btn').addEventListener('click', function() { goTo(currentIdx + 1); });
+
+        document.getElementById('start-btn').addEventListener('click', function() {
+            var overlay = document.getElementById('gallery-overlay');
+            overlay.style.opacity = '0';
+            setTimeout(function() { overlay.style.display = 'none'; }, 700);
+
+            document.getElementById('gallery-content').style.display = 'block';
+
+            var music = document.getElementById('gallery-music');
+            if (music) music.play().catch(function(){});
+
+            // Auto advance
+            timer = setInterval(function() { goTo(currentIdx + 1); }, 4500);
+        });
+    })();
+    </script>
+</body>
+</html>
