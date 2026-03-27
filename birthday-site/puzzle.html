@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Puzzle 🧩</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;600&display=swap" rel="stylesheet">
+    <style>
+        body.puzzle-body {
+            background: radial-gradient(circle at center, #1a0033 0%, #05000a 100%);
+            min-height: 100vh;
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Poppins', sans-serif;
+            padding: 80px 20px 40px;
+            overflow-y: auto;
+        }
+
+        .puzzle-card {
+            position: relative; z-index: 10;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 28px;
+            padding: 2.2rem 2rem 2rem;
+            text-align: center;
+            max-width: 420px; width: 100%;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+        }
+
+        .puzzle-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.2rem; color: white;
+            text-shadow: 0 0 15px rgba(255,75,175,0.5);
+            margin-bottom: 4px;
+        }
+        .puzzle-hint {
+            color: rgba(255,255,255,0.45);
+            font-size: 0.82rem; margin-bottom: 18px;
+        }
+
+        /* ── PUZZLE GRID ── */
+        #puzzle-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 4px;
+            width: 300px; height: 300px;
+            margin: 0 auto;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 8px 30px rgba(255,75,175,0.3);
+            cursor: pointer;
+        }
+
+        .p-tile {
+            position: relative;
+            overflow: hidden;
+            background: #0d0d1a;
+            transition: transform 0.12s ease, box-shadow 0.12s ease;
+            cursor: pointer;
+        }
+        .p-tile:not(.p-empty):hover {
+            transform: scale(0.96);
+            box-shadow: inset 0 0 0 3px rgba(255,75,175,0.6);
+            z-index: 2;
+        }
+        .p-tile canvas {
+            display: block; width: 100%; height: 100%;
+        }
+        .p-tile.p-empty {
+            background: rgba(255,75,175,0.08);
+            border: 2px dashed rgba(255,75,175,0.25);
+            cursor: default;
+        }
+        /* Highlight tiles that can move */
+        .p-tile.can-move {
+            box-shadow: inset 0 0 0 2px rgba(255,75,175,0.5);
+        }
+
+        /* ── MOVE COUNTER ── */
+        .move-counter {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.82rem; margin-top: 10px;
+        }
+        .move-counter span { color: #ff4baf; font-weight: 600; font-size: 1rem; }
+
+        /* ── WIN POPUP OVERLAY ── */
+        #puzzle-win {
+            display: none;
+            position: fixed; inset: 0; z-index: 500;
+            background: radial-gradient(circle at 50% 40%, rgba(26,0,51,0.97) 0%, rgba(5,0,10,0.98) 100%);
+            backdrop-filter: blur(12px);
+            align-items: center; justify-content: center;
+            flex-direction: column;
+            animation: winFadeIn 0.7s ease forwards;
+        }
+        #puzzle-win.visible { display: flex; }
+
+        @keyframes winFadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        /* Floating hearts behind popup */
+        #puzzle-win::before {
+            content: '❤️ 💕 ✨ 💖 ❤️ 💕 ✨ 💖';
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; letter-spacing: 30px;
+            opacity: 0.08; pointer-events: none;
+            word-break: break-all; padding: 40px;
+            line-height: 3;
+        }
+
+        .win-card {
+            position: relative; z-index: 10;
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: 28px;
+            padding: 3rem 2.5rem;
+            text-align: center;
+            max-width: 400px; width: 88%;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.6), 0 0 40px rgba(255,75,175,0.15);
+            animation: cardPop 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards;
+        }
+        @keyframes cardPop {
+            from { transform: scale(0.7); opacity: 0; }
+            to   { transform: scale(1);   opacity: 1; }
+        }
+
+        .win-emoji {
+            font-size: 4rem; margin-bottom: 10px;
+            display: inline-block;
+            animation: heartBeat 1.2s ease-in-out infinite;
+        }
+        @keyframes heartBeat {
+            0%,100% { transform: scale(1); }
+            50%      { transform: scale(1.18); }
+        }
+
+        .win-title {
+            font-family: 'Dancing Script', cursive;
+            font-size: 2.6rem; color: white;
+            background: linear-gradient(to right, #fff, #ff4baf, #fff);
+            background-size: 200% auto;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: textShine 3s linear infinite;
+            margin-bottom: 12px;
+        }
+        @keyframes textShine { to { background-position: 200% center; } }
+
+        .win-msg {
+            color: rgba(255,255,255,0.65);
+            font-size: 0.9rem; line-height: 1.7;
+            margin-bottom: 20px;
+        }
+
+        /* Password box */
+        .win-pass-box {
+            background: rgba(255,75,175,0.1);
+            border: 1.5px solid rgba(255,75,175,0.3);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 22px;
+        }
+        .win-pass-label {
+            color: rgba(255,255,255,0.5);
+            font-size: 0.78rem; letter-spacing: 1.5px;
+            text-transform: uppercase; margin-bottom: 8px;
+        }
+        .win-pass-code {
+            color: #ff4baf;
+            font-size: 2.2rem; font-weight: 700;
+            letter-spacing: 8px;
+            text-shadow: 0 0 20px rgba(255,75,175,0.6);
+            font-family: 'Courier New', monospace;
+        }
+
+        .secret-link {
+            display: inline-block;
+            padding: 14px 32px;
+            background: linear-gradient(45deg, #ff4b5c, #ff4baf);
+            color: white; text-decoration: none;
+            border-radius: 50px; font-weight: 600; font-size: 1rem;
+            box-shadow: 0 8px 25px rgba(255,75,175,0.45);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: block; margin-bottom: 12px;
+        }
+        .secret-link:hover { transform: translateY(-3px); box-shadow: 0 14px 30px rgba(255,75,175,0.6); }
+
+        .win-dismiss {
+            color: rgba(255,255,255,0.35); font-size: 0.8rem;
+            cursor: pointer; transition: color 0.2s;
+            background: none; border: none; font-family: 'Poppins', sans-serif;
+        }
+        .win-dismiss:hover { color: rgba(255,255,255,0.6); }
+
+        /* ── BUTTONS ── */
+        .btn-row { display: flex; gap: 10px; justify-content: center; margin-top: 16px; flex-wrap: wrap; }
+        .ghost-btn {
+            padding: 10px 24px;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.7); border-radius: 50px;
+            font-family: 'Poppins', sans-serif; font-size: 0.88rem;
+            cursor: pointer; transition: background 0.2s;
+        }
+        .ghost-btn:hover { background: rgba(255,255,255,0.13); color: white; }
+
+        /* ── IMAGE LOADING STATE ── */
+        #img-loading {
+            width: 300px; height: 300px; margin: 0 auto;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: rgba(255,75,175,0.06);
+            border: 2px dashed rgba(255,75,175,0.2);
+            border-radius: 14px; color: rgba(255,255,255,0.4);
+            font-size: 0.85rem; gap: 10px;
+        }
+        #img-loading .load-icon { font-size: 2.5rem; }
+    </style>
+</head>
+<body class="puzzle-body">
+    <canvas id="particleCanvas"></canvas>
+    <a href="menu.html" class="floating-home">🏠 Home</a>
+
+    <div class="puzzle-card">
+        <div class="puzzle-title">Align My Heart ❤️</div>
+        <div class="puzzle-hint">Tap a tile next to the empty space to slide it!</div>
+
+        <!-- Loading state -->
+        <div id="img-loading">
+            <div class="load-icon">🖼️</div>
+            <div>Loading your photo...</div>
+        </div>
+
+        <!-- Puzzle grid (shown after image loads) -->
+        <div id="puzzle-grid" style="display:none;"></div>
+
+        <div class="move-counter" id="move-counter" style="display:none;">
+            Moves: <span id="move-count">0</span>
+        </div>
+
+        <!-- WIN POPUP OVERLAY -->
+        <div id="puzzle-win">
+            <div class="win-card">
+                <div class="win-emoji">🎉</div>
+                <div class="win-title">You did it!</div>
+                <div class="win-msg">
+                    You solved our puzzle! 💕<br>
+                    Just like you complete me, you completed this too. ❤️
+                </div>
+                <div class="win-pass-box">
+                    <div class="win-pass-label">🔐 Your Secret Password</div>
+                    <div class="win-pass-code">ILOVEUAJINKYA0927</div>
+                </div>
+                <a href="secret.html" class="secret-link">💖 Open Today's Special</a>
+                <button class="win-dismiss" onclick="document.getElementById('puzzle-win').classList.remove('visible')">
+                    ← Keep playing
+                </button>
+            </div>
+        </div>
+
+        <div class="btn-row">
+            <button class="ghost-btn" id="shuffle-btn">🔀 Shuffle</button>
+            <button class="ghost-btn" id="preview-btn">👁️ Preview</button>
+        </div>
+
+        <!-- Preview overlay -->
+        <div id="preview-overlay" style="
+            display:none; position:fixed; inset:0; z-index:500;
+            background:rgba(0,0,0,0.85); align-items:center; justify-content:center;
+            flex-direction:column; gap:15px;
+        " onclick="this.style.display='none'">
+            <img id="preview-img" style="max-width:85vw; max-height:75vh; border-radius:12px; box-shadow:0 0 40px rgba(255,75,175,0.4);" alt="Preview"/>
+            <div style="color:rgba(255,255,255,0.6); font-size:0.85rem;">Tap anywhere to close</div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+    (function() {
+        // ══════════════════════════════════════════════════
+        //  PHOTO PUZZLE — uses images/pic1.jpeg
+        //  Change PUZZLE_IMAGE to use a different photo
+        // ══════════════════════════════════════════════════
+        var PUZZLE_IMAGE = 'images/pic15.jpeg';
+        var GRID_SIZE    = 3;         // 3x3
+        var TILE_PX      = 100;       // each tile = 100x100 (total = 300x300)
+        var TOTAL_TILES  = GRID_SIZE * GRID_SIZE;  // 9
+
+        var tiles     = [];   // array of { correctPos, currentPos } where pos = 0..8
+        var emptyPos  = 8;    // last position is empty
+        var moves     = 0;
+        var imgData   = null; // offscreen canvas slices
+        var solved    = false;
+
+        var grid         = document.getElementById('puzzle-grid');
+        var winEl        = document.getElementById('puzzle-win');
+        var moveCountEl  = document.getElementById('move-count');
+        var moveCounter  = document.getElementById('move-counter');
+        var loadingEl    = document.getElementById('img-loading');
+        var shuffleBtn   = document.getElementById('shuffle-btn');
+        var previewBtn   = document.getElementById('preview-btn');
+        var previewOvl   = document.getElementById('preview-overlay');
+        var previewImg   = document.getElementById('preview-img');
+
+        // ── LOAD IMAGE & SLICE ──────────────────────────────
+        var masterImg = new Image();
+        masterImg.crossOrigin = 'anonymous';
+        masterImg.src = PUZZLE_IMAGE;
+
+        masterImg.onload = function() {
+            previewImg.src = PUZZLE_IMAGE;
+            imgData = sliceImage(masterImg);
+            loadingEl.style.display = 'none';
+            grid.style.display = 'grid';
+            moveCounter.style.display = 'block';
+            initPuzzle();
+        };
+
+        masterImg.onerror = function() {
+            loadingEl.innerHTML =
+                '<div class="load-icon">⚠️</div>' +
+                '<div style="font-size:0.78rem; padding:0 10px;">Photo not found.<br>Make sure <code>images/pic1.jpeg</code> exists.</div>';
+            // Fall back to number puzzle
+            imgData = null;
+            loadingEl.style.display = 'none';
+            grid.style.display = 'grid';
+            moveCounter.style.display = 'block';
+            initPuzzle();
+        };
+
+        // Slice the image into 9 canvases (3x3 grid)
+        function sliceImage(img) {
+            var slices = [];
+            var sw = img.naturalWidth  / GRID_SIZE;
+            var sh = img.naturalHeight / GRID_SIZE;
+            for (var row = 0; row < GRID_SIZE; row++) {
+                for (var col = 0; col < GRID_SIZE; col++) {
+                    var cv = document.createElement('canvas');
+                    cv.width  = TILE_PX;
+                    cv.height = TILE_PX;
+                    var ctx = cv.getContext('2d');
+                    ctx.drawImage(img, col * sw, row * sh, sw, sh, 0, 0, TILE_PX, TILE_PX);
+                    slices.push(cv);  // slice index = row*3+col = correct tile number
+                }
+            }
+            return slices;
+        }
+
+        // ── INIT & SHUFFLE ─────────────────────────────────
+        function initPuzzle() {
+            solved = false;
+            document.getElementById('puzzle-win').classList.remove('visible');
+            moves = 0;
+            moveCountEl.textContent = '0';
+
+            // Create tile order: 0..7 = tile indices, 8 = empty
+            tiles = [];
+            for (var i = 0; i < TOTAL_TILES - 1; i++) tiles.push(i);
+            tiles.push(null); // null = empty slot
+            emptyPos = TOTAL_TILES - 1;
+
+            // Shuffle until solvable and not already solved
+            do { tiles = fisherYates(tiles); emptyPos = tiles.indexOf(null); }
+            while (isSolved() || !isSolvable());
+
+            renderGrid();
+        }
+
+        function fisherYates(arr) {
+            var a = arr.slice();
+            for (var i = a.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var t = a[i]; a[i] = a[j]; a[j] = t;
+            }
+            return a;
+        }
+
+        // Solvability check for 3x3 slide puzzle
+        function isSolvable() {
+            var flat = tiles.filter(function(t) { return t !== null; });
+            var inv = 0;
+            for (var i = 0; i < flat.length; i++)
+                for (var j = i + 1; j < flat.length; j++)
+                    if (flat[i] > flat[j]) inv++;
+            return inv % 2 === 0;
+        }
+
+        function isSolved() {
+            for (var i = 0; i < TOTAL_TILES - 1; i++) {
+                if (tiles[i] !== i) return false;
+            }
+            return tiles[TOTAL_TILES - 1] === null;
+        }
+
+        // ── RENDER ────────────────────────────────────────
+        function renderGrid() {
+            grid.innerHTML = '';
+            emptyPos = tiles.indexOf(null);
+
+            tiles.forEach(function(tileVal, pos) {
+                var div = document.createElement('div');
+
+                if (tileVal === null) {
+                    div.className = 'p-tile p-empty';
+                } else {
+                    div.className = 'p-tile';
+                    // Check if this tile can slide (is adjacent to empty)
+                    if (isAdjacent(pos, emptyPos)) div.classList.add('can-move');
+
+                    if (imgData) {
+                        // Real photo tile
+                        var cv = document.createElement('canvas');
+                        cv.width  = TILE_PX;
+                        cv.height = TILE_PX;
+                        var ctx = cv.getContext('2d');
+                        ctx.drawImage(imgData[tileVal], 0, 0);
+                        div.appendChild(cv);
+                    } else {
+                        // Fallback: number tile
+                        div.style.cssText = 'background:linear-gradient(135deg,#ff4b5c,#ff4baf);display:flex;align-items:center;justify-content:center;color:white;font-size:2rem;font-weight:700;';
+                        div.textContent = tileVal + 1;
+                    }
+
+                    // Click handler
+                    (function(p) {
+                        div.addEventListener('click', function() { tryMove(p); });
+                    })(pos);
+                }
+                grid.appendChild(div);
+            });
+        }
+
+        // ── MOVE LOGIC ────────────────────────────────────
+        function isAdjacent(posA, posB) {
+            var rA = Math.floor(posA / GRID_SIZE), cA = posA % GRID_SIZE;
+            var rB = Math.floor(posB / GRID_SIZE), cB = posB % GRID_SIZE;
+            return (rA === rB && Math.abs(cA - cB) === 1) ||
+                   (cA === cB && Math.abs(rA - rB) === 1);
+        }
+
+        function tryMove(pos) {
+            if (solved) return;
+            emptyPos = tiles.indexOf(null);
+            if (!isAdjacent(pos, emptyPos)) return;
+
+            // Swap
+            tiles[emptyPos] = tiles[pos];
+            tiles[pos] = null;
+            emptyPos = pos;
+            moves++;
+            moveCountEl.textContent = moves;
+            renderGrid();
+
+            if (isSolved()) {
+                solved = true;
+                setTimeout(function() {
+                    document.getElementById('puzzle-win').classList.add('visible');
+                }, 350);
+            }
+        }
+
+        // ── PREVIEW ───────────────────────────────────────
+        previewBtn.addEventListener('click', function() {
+            if (!masterImg.complete || masterImg.naturalWidth === 0) return;
+            previewOvl.style.display = 'flex';
+        });
+
+        // ── SHUFFLE ───────────────────────────────────────
+        shuffleBtn.addEventListener('click', initPuzzle);
+
+    })();
+    </script>
+</body>
+</html>

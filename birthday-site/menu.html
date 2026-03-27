@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Choose Your Surprise 🎁</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body class="menu-page">
+    <canvas id="particleCanvas"></canvas>
+    <div class="vignette"></div>
+
+    <main class="menu-container">
+        <h2 class="menu-title">Choose Your Surprise 🎁</h2>
+        
+        <div class="menu-grid">
+            <div class="menu-card" onclick="location.href='cake.html'" style="--delay: 0.1s">
+                <div class="card-icon">🎂</div>
+                <div class="card-content">
+                    <h3>Cake Cutting</h3>
+                    <p>Let’s celebrate together</p>
+                </div>
+                <div class="card-arrow">→</div>
+            </div>
+
+            <div class="menu-card" onclick="location.href='gallery.html'" style="--delay: 0.2s">
+                <div class="card-icon">📸</div>
+                <div class="card-content">
+                    <h3>Photo Gallery</h3>
+                    <p>Our beautiful memories</p>
+                </div>
+                <div class="card-arrow">→</div>
+            </div>
+
+            <div class="menu-card" onclick="location.href='puzzle.html'" style="--delay: 0.3s">
+                <div class="card-icon">🧩</div>
+                <div class="card-content">
+                    <h3>Puzzle</h3>
+                    <p>Solve our love challenge</p>
+                </div>
+                <div class="card-arrow">→</div>
+            </div>
+
+            <div class="menu-card" onclick="location.href='secret.html'" style="--delay: 0.4s">
+                <div class="card-icon">🔐</div>
+                <div class="card-content">
+                    <h3>Today's Special</h3>
+                    <p>A secret just for you</p>
+                </div>
+                <div class="card-arrow">→</div>
+            </div>
+
+            <div class="menu-card" onclick="location.href='feedback.html'" style="--delay: 0.5s">
+                <div class="card-icon">💌</div>
+                <div class="card-content">
+                    <h3>Feedback</h3>
+                    <p>Say something for me</p>
+                </div>
+                <div class="card-arrow">→</div>
+            </div>
+        </div>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>

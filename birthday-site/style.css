@@ -1,0 +1,526 @@
+:root {
+    --primary-glow: #ff4baf;
+    --secondary-glow: #7000ff;
+    --text-color: #ffffff;
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.15);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: radial-gradient(circle at center, #1a0033 0%, #05000a 100%);
+    height: 100vh;
+    font-family: 'Poppins', sans-serif;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background 1.5s ease-in-out; /* Smooth background transition */
+}
+
+/* Cinematic Effects */
+.vignette {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%);
+    pointer-events: none;
+    z-index: 2;
+}
+
+#particleCanvas {
+    position: fixed;
+    top: 0; left: 0;
+    z-index: 1;
+}
+
+/* The Glass Card (Landing Page) */
+.glass-card {
+    position: relative;
+    z-index: 10;
+    background: var(--glass-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--glass-border);
+    padding: 3rem 2rem;
+    border-radius: 30px;
+    text-align: center;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    animation: cardEntrance 1.5s cubic-bezier(0.22, 1, 0.36, 1), 
+               float 6s ease-in-out infinite;
+}
+
+@keyframes cardEntrance {
+    from { opacity: 0; transform: scale(0.9) translateY(30px); filter: blur(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+}
+
+@keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-15px); }
+}
+
+/* Typography */
+.glow-text {
+    font-family: 'Dancing Script', cursive;
+    font-size: 3.5rem;
+    background: linear-gradient(to right, #fff, var(--primary-glow), #fff);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: textShine 4s linear infinite;
+    margin-bottom: 10px;
+    text-shadow: 0 0 20px rgba(255, 75, 175, 0.3);
+}
+
+@keyframes textShine {
+    to { background-position: 200% center; }
+}
+
+.subtitle {
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 300;
+    letter-spacing: 1px;
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: fadeIn 1.5s ease forwards 0.8s;
+}
+
+/* Premium Button */
+.premium-btn {
+    position: relative;
+    display: inline-block;
+    padding: 16px 45px;
+    background: linear-gradient(45deg, #ff4b5c, #ff4baf);
+    color: white;
+    text-decoration: none;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    overflow: hidden;
+    box-shadow: 0 10px 20px rgba(255, 75, 92, 0.4);
+    cursor: pointer;
+    border: none;
+}
+
+.premium-btn:hover {
+    transform: scale(1.1) translateY(-5px);
+    box-shadow: 0 15px 30px rgba(255, 75, 175, 0.6);
+}
+
+.btn-glow {
+    position: absolute;
+    top: -50%; left: -50%; width: 200%; height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%);
+    transform: scale(0);
+    transition: transform 0.6s ease;
+    pointer-events: none;
+}
+
+.premium-btn:hover .btn-glow {
+    transform: scale(1);
+}
+
+@keyframes fadeIn { to { opacity: 1; } }
+
+/* --- MENU PAGE SPECIFIC STYLES --- */
+.menu-page {
+    justify-content: flex-start; 
+    padding-top: 50px;
+    overflow-y: auto; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.menu-container {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 500px;
+    padding: 20px;
+    margin-bottom: 50px;
+}
+
+.menu-title {
+    font-family: 'Dancing Script', cursive;
+    font-size: 2.5rem;
+    color: white;
+    text-align: center;
+    margin-bottom: 30px;
+    text-shadow: 0 0 15px rgba(255, 75, 175, 0.5);
+}
+
+.menu-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.menu-card {
+    display: flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.07);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    opacity: 0; 
+    transform: translateY(30px);
+    animation: cardSlideUp 0.8s ease forwards;
+}
+
+.menu-card:nth-child(1) { animation-delay: 0.1s; }
+.menu-card:nth-child(2) { animation-delay: 0.2s; }
+.menu-card:nth-child(3) { animation-delay: 0.3s; }
+.menu-card:nth-child(4) { animation-delay: 0.4s; }
+.menu-card:nth-child(5) { animation-delay: 0.5s; }
+
+@keyframes cardSlideUp {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.menu-card:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: scale(1.03) translateY(-5px);
+    border-color: rgba(255, 75, 175, 0.4);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3), 0 0 15px rgba(255, 75, 175, 0.2);
+}
+
+.card-icon { font-size: 2.5rem; margin-right: 20px; }
+.card-content { flex-grow: 1; text-align: left; }
+.card-content h3 { color: white; font-size: 1.2rem; margin-bottom: 4px; }
+.card-content p { color: rgba(255, 255, 255, 0.6); font-size: 0.9rem; }
+.card-arrow { color: rgba(255, 255, 255, 0.3); font-size: 1.5rem; }
+
+/* --- INTERNAL SHARED ELEMENTS --- */
+.floating-home {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 100;
+    padding: 10px 20px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border-radius: 50px;
+    border: 1px solid var(--glass-border);
+    color: white;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: 0.3s;
+}
+.floating-home:hover { background: white; color: var(--primary-glow); }
+
+/* --- CAKE RITUAL STYLES --- */
+.light-on {
+    background-color: #ffffff !important; /* Fallback color */
+    background-image: radial-gradient(circle at center, #ffffff 0%, #ffecd2 100%) !important;
+}
+
+/* ADD THIS RIGHT BELOW IT: */
+.light-on .menu-title,
+.light-on h2 {
+    color: #ff4baf !important;
+    text-shadow: none !important;
+}
+
+#birthday-banner {
+    position: fixed;
+    top: -120px; /* Start higher to hide shadow */
+    left: 0; width: 100%;
+    background: linear-gradient(90deg, #ff4baf, #ff4b5c);
+    color: white;
+    padding: 20px;
+    text-align: center;
+    font-family: 'Dancing Script', cursive;
+    font-size: 2.2rem;
+    z-index: 100;
+    transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.banner-visible { transform: translateY(120px); }
+
+.cake-stage {
+    width: 300px;
+    height: 300px;
+    margin-bottom: 30px;
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    transition: transform 1s ease;
+    position: relative;
+    z-index: 10;
+}
+
+.cake-layer {
+    height: 45px; /* Slightly shorter for a better 4-layer stack */
+    border-radius: 12px 12px 4px 4px;
+    border: 3px solid #fff;
+    width: var(--width);
+    background-color: var(--color); /* Uses dynamic color from JS */
+    transform: scale(0); /* Starts invisible/small */
+    transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+}
+
+.cake-layer.built {
+    transform: scale(1); /* Pops into view */
+}
+
+/* Icing Effect for the very top layer */
+#cake-builder .cake-layer:last-child::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 12px;
+    background: rgba(255,255,255,0.4);
+    border-radius: 10px 10px 0 0;
+}
+
+
+.candle {
+    width: 10px; height: 35px;
+    background: #fff;
+    position: relative;
+    opacity: 0;
+    transition: 0.5s ease;
+}
+.flame {
+    position: absolute;
+    top: -15px; left: 50%; transform: translateX(-50%);
+    width: 12px; height: 18px;
+    background: #ff9d00;
+    border-radius: 50% 50% 20% 20%;
+    animation: flicker 0.1s infinite alternate;
+    box-shadow: 0 0 10px #ff9d00;
+}
+
+@keyframes flicker { 
+    0% { transform: translateX(-50%) scale(1); opacity: 0.8; }
+    100% { transform: translateX(-50%) scale(1.1); opacity: 1; }
+}
+
+/* Step Controllers */
+.step-box.hidden { display: none; }
+.step-box.active { display: block; animation: fadeIn 0.5s forwards; }
+
+.pulse { animation: pulseGlow 2s infinite; }
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 0 0px rgba(255, 75, 175, 0.4); }
+    70% { box-shadow: 0 0 0 15px rgba(255, 75, 175, 0); }
+    100% { box-shadow: 0 0 0 0px rgba(255, 75, 175, 0); }
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .glow-text { font-size: 2.2rem; }
+    .glass-card { padding: 2rem 1rem; width: 90%; }
+    .menu-title { font-size: 2rem; }
+    .card-icon { font-size: 2rem; }
+    .card-content h3 { font-size: 1.1rem; }
+}
+
+/* --- GALLERY STYLES --- */
+.gallery-container {
+    z-index: 10;
+    text-align: center;
+    width: 90%;
+    max-width: 600px;
+}
+
+.photo-frame {
+    background: white;
+    padding: 15px 15px 60px 15px; /* Bottom padding for Polaroid look */
+    border-radius: 5px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 30px;
+    transform: rotate(-2deg); /* Slight tilt for romantic feel */
+    transition: 0.5s;
+}
+
+.photo-frame:hover {
+    transform: rotate(0deg) scale(1.02);
+}
+
+#slideshow {
+    width: 100%;
+    height: 400px;
+    background: #222;
+    position: relative;
+    overflow: hidden;
+}
+
+#slideshow img {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 1.5s ease-in-out, transform 6s linear;
+}
+
+#slideshow img.active {
+    opacity: 1;
+    transform: scale(1.1); /* Slow zoom effect */
+}
+
+.photo-caption {
+    position: absolute;
+    bottom: 15px;
+    left: 0;
+    width: 100%;
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.8rem;
+    color: #333;
+    text-align: center;
+}
+
+.gallery-controls {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+#gallery-overlay {
+    background: radial-gradient(circle at center, #1a0033 0%, #05000a 100%) !important;
+    backdrop-filter: blur(10px);
+}
+
+#gallery-overlay h2 {
+    font-family: 'Dancing Script', cursive;
+    font-size: 3rem;
+    color: white;
+    margin-bottom: 20px;
+}
+
+/* --- NEW CELEBRATION EFFECTS --- */
+
+/* Balloon Animation */
+.balloon {
+    position: absolute;
+    bottom: -100px;
+    width: 45px;
+    height: 55px;
+    background: var(--primary-glow);
+    border-radius: 50%;
+    z-index: 5;
+    animation: floatUp 6s linear forwards;
+}
+
+.balloon::before { /* Balloon String */
+    content: '';
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    width: 2px;
+    height: 25px;
+    background: rgba(255,255,255,0.4);
+}
+
+@keyframes floatUp {
+    0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(-120vh) rotate(20deg); opacity: 0; }
+}
+
+/* Flash Animation for "Light On" */
+.flash-effect {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: white;
+    z-index: 1000;
+    pointer-events: none;
+    animation: flashAnim 0.8s ease-out forwards;
+}
+
+@keyframes flashAnim {
+    0% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* Make sure the cake container is clean */
+#cake-builder {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: 2px;
+}
+
+/* Ensure the steps actually disappear when hidden */
+.hidden {
+    display: none !important;
+}
+
+/* Smooth fading for the ritual buttons */
+.step-box {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+.step-box.active {
+    display: block !important;
+    opacity: 1;
+}
+
+.puzzle-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 80px);
+    grid-gap: 10px;
+    justify-content: center;
+    background: var(--glass-bg);
+    padding: 15px;
+    border-radius: 15px;
+    border: 1px solid var(--glass-border);
+}
+
+.tile {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(45deg, #ff4b5c, #ff4baf);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.tile.empty {
+    background: transparent;
+    border: 2px dashed var(--glass-border);
+    cursor: default;
+}
+
+/* Crucial for Button 1 to work */
+.light-on {
+    background: white !important;
+}
+
+/* Ensure the banner can slide down */
+.banner-visible {
+    transform: translateY(120px) !important;
+}
+
+#slideshow img {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    z-index: 1;
+}
+#slideshow img.active {
+    opacity: 1;
+    z-index: 2;
+}
